@@ -94,7 +94,7 @@ const bookCodes = {
   Nehemiah: "NEH",
   Esther: "EST",
   Job: "JOB",
-  Psalms: "PS",
+  Psalms: "PSA",
   Proverbs: "PRO",
   Ecclesiastes: "ECC",
   "Song of Solomon": "SNG",
