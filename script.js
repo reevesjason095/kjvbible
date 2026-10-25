@@ -94,7 +94,7 @@ const bookCodes = {
   Nehemiah: "NEH",
   Esther: "EST",
   Job: "JOB",
-  Psalms: "PSA",
+  Psalms: "PSM", // <-- HelloAO specific code for Psalms
   Proverbs: "PRO",
   Ecclesiastes: "ECC",
   "Song of Solomon": "SNG",
@@ -116,9 +116,9 @@ const bookCodes = {
   Zechariah: "ZEC",
   Malachi: "MAL",
   Matthew: "MAT",
-  Mark: "MRK",
+  Mark: "MAK", // <-- HelloAO specific code for Mark
   Luke: "LUK",
-  John: "JHN",
+  John: "JOH", // <-- HelloAO specific code for John
   Acts: "ACT",
   Romans: "ROM",
   "1 Corinthians": "1CO",
@@ -143,6 +143,7 @@ const bookCodes = {
   Jude: "JUD",
   Revelation: "REV"
 };
+
 
 let selected = 0;
 let chapter = 1;
