@@ -17,7 +17,7 @@ const bookCodes = {
   Nehemiah: "NEH",
   Esther: "EST",
   Job: "JOB",
-  Psalms: "PSA",
+  Psalms: "PSM",
   Proverbs: "PRO",
   Ecclesiastes: "ECC",
   "Song of Solomon": "SNG",
@@ -32,7 +32,7 @@ const bookCodes = {
   Obadiah: "OBA",
   Jonah: "JON",
   Micah: "MIC",
-  Nahum: "NAH",
+  Nahum: "NAM",
   Habakkuk: "HAB",
   Zephaniah: "ZEP",
   Haggai: "HAG",
@@ -80,8 +80,12 @@ exports.handler = async function (event) {
     }
 
     const url = `https://bible.helloao.org/api/eng_kjv/${bookCode}/${chapter}.json`;
-
     const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Upstream status ${response.status}`);
+    }
+
     const data = await response.json();
 
     return {
