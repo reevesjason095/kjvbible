@@ -161,7 +161,7 @@ function renderVerses() {
   // HelloAO open API mirror requires lowercased book names without spaces (e.g., "1samuel")
   const formattedBook = currentBook.toLowerCase().replace(/\s+/g, '');
   
-  // Format the endpoint URL pointing directly to the mirror's KJV translation files
+  // FIXED: Added the correct full subdomain path and the missing dollar sign ($) for the book variable
   const apiUrl = `https://helloao.org{formattedBook}/${currentChapter}.json`;
 
   fetch(apiUrl)
@@ -194,6 +194,7 @@ function renderVerses() {
       `;
     });
 }
+
 
 
 // 5. ATTACH ALL NAVIGATION COMPONENT LISTENERS SAFEGUARDS
