@@ -1,0 +1,430 @@
+/* 1. APP COLOR THEMES & FONTS */
+:root {
+  --bg-primary: #f7f4ee;
+  --bg-sidebar: #ffffff;
+  --text-main: #2c2a29;
+  --text-muted: #706e6b;
+  --accent-gold: #c5a880;
+  --accent-gold-dark: #a3855c;
+  --border-color: #e6e3dc;
+  --font-serif: "Georgia", serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 2. HEADER TOPBAR DESIGN */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-sidebar);
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.brand-mark {
+  color: var(--accent-gold);
+}
+
+.brand-light {
+  font-weight: 300;
+  color: var(--text-muted);
+}
+
+.top-nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--text-main);
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+.profile-button {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+  border-radius: 50%;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 3. CONTENT PAGE SHELL LAYOUT */
+.page-shell {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.welcome-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3rem;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-gold-dark);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+h1 {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-copy {
+  color: var(--text-muted);
+}
+
+.date-chip {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 4. SIDEBAR CONTENTS WRAPPER */
+.reader-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sidebar {
+  background-color: #faf9f6;
+  border-right: 1px solid var(--border-color);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sidebar-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.version-tag {
+  font-size: 0.7rem;
+  background: var(--border-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: 6px;
+  gap: 0.5rem;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.testament-tabs {
+  display: flex;
+  background: var(--border-color);
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.testament-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.testament-tab.selected {
+  background: var(--bg-sidebar);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.book-option {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.book-option:hover {
+  background: var(--border-color);
+}
+
+.book-option.selected {
+  background: var(--accent-gold);
+  color: white;
+  font-weight: 600;
+}
+
+.sidebar-note {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+/* 5. MAIN SCRIPTURE VIEWING PANEL */
+.reading-panel {
+  padding: 2rem;
+}
+
+.reading-toolbar {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.chapter-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-gold-dark);
+}
+
+.chapter-title {
+  font-family: var(--font-serif);
+  font-size: 2.25rem;
+  font-weight: 400;
+  margin: 0.5rem 0 1rem;
+}
+
+.chapter-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.chapter-arrow {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chapter-select-wrap {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.chapter-select-wrap select {
+  padding: 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  margin-left: 0.5rem;
+  font-weight: 600;
+}
+
+.rule {
+  text-align: center;
+  color: var(--border-color);
+  margin: 2rem 0;
+}
+
+/* VERSE STYLING */
+.verses {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.8;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.verse {
+  margin-bottom: 1.25rem;
+  text-align: justify;
+}
+
+.verse sup {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-gold-dark);
+  margin-right: 0.4rem;
+}
+
+.status-text {
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+/* 6. DAILY REFLECTION CARD */
+.daily-card {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, #f0ede6 0%, #e6e2d8 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.daily-icon {
+  font-size: 2rem;
+  color: var(--accent-gold-dark);
+}
+
+.daily-verse {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+}
+
+.daily-verse span {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.daily-link {
+  margin-left: auto;
+  background: var(--text-main);
+  color: white;
+  text-decoration: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.chapter-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+.text-arrow {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--accent-gold-dark);
+  font-weight: 700;
+}
+
+/* 7. NOTIFICATION MESSAGE DIALOG */
+.saved-message {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--text-main);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(100px);
+  transition: transform 0.3s ease;
+}
+.saved-message.visible {
+  transform: translateY(0);
+}
