@@ -1,178 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Good Word — KJV Bible</title>
-    <!-- This line is required so OneCompiler links your styles tab to the HTML -->
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header class="topbar">
-      <a class="brand" href="#home" aria-label="Good Word home">
-        <span class="brand-mark" aria-hidden="true">✦</span>
-        <span>
-          good
-          <span class="brand-light">word</span>
-        </span>
-      </a>
-      <nav class="top-nav" aria-label="Main navigation">
-        <a class="nav-link active" href="#read">Read</a>
-        <a class="nav-link" href="#discover">Discover</a>
-        <a class="nav-link" href="#saved">Saved</a>
-      </nav>
-      <button class="profile-button" aria-label="Your profile">JD</button>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Good Word — KJV Bible</title>
+  <!-- This line is required so OneCompiler links your styles tab to the HTML -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
 
-    <main class="page-shell" id="home">
-      <section class="welcome-row">
-        <div>
-          <p class="eyebrow">THE KING JAMES VERSION</p>
-          <h1>A little time in the Word.</h1>
-          <p class="welcome-copy">
-            Find a quiet moment. Let the words meet you where you are.
-          </p>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="Good Word home">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span>good<span class="brand-light">word</span></span>
+    </a>
+    <nav class="top-nav" aria-label="Main navigation">
+      <a class="nav-link active" href="#read">Read</a>
+      <a class="nav-link" href="#discover">Discover</a>
+      <a class="nav-link" href="#saved">Saved</a>
+    </nav>
+    <button class="profile-button" aria-label="Your profile">JD</button>
+  </header>
+
+  <main class="page-shell" id="home">
+    <section class="welcome-row">
+      <div>
+        <p class="eyebrow">THE KING JAMES VERSION</p>
+        <h1>A little time in the Word.</h1>
+        <p class="welcome-copy">Find a quiet moment. Let the words meet you where you are.</p>
+      </div>
+      <div class="date-chip">
+        <span class="sun-icon" aria-hidden="true">☼</span> 
+        <span id="todayDate">TODAY</span>
+      </div>
+    </section>
+
+    <section class="reader-layout" id="read" aria-label="Bible reader">
+      <aside class="sidebar">
+        <div class="sidebar-heading">
+          <div>
+            <p class="eyebrow">YOUR BIBLE</p>
+            <h2>Contents</h2>
+          </div>
+          <span class="version-tag">KJV</span>
         </div>
-        <div class="date-chip">
-          <span class="sun-icon" aria-hidden="true">☼</span>
-          <span id="todayDate">TODAY</span>
+        <label class="search-box" for="bookSearch">
+          <span aria-hidden="true">⌕</span>
+          <input id="bookSearch" type="search" placeholder="Find a book" autocomplete="off" />
+          <kbd>/</kbd>
+        </label>
+        <div class="testament-tabs" role="group" aria-label="Filter books by testament">
+          <button class="testament-tab selected" data-testament="old" type="button">Old Testament</button>
+          <button class="testament-tab" data-testament="new" type="button">New Testament</button>
+        </div>
+        <div class="book-list" id="bookList" aria-label="Books of the Bible"></div>
+        <p class="sidebar-note">“Thy word is a lamp unto my feet, and a light unto my path.”<br /><span>PSALM 119:105</span></p>
+      </aside>
+
+      <section class="reading-panel" aria-live="polite">
+        <div class="reading-toolbar">
+          <div class="breadcrumb"><span>THE WORD</span><span class="crumb-separator">/</span><span id="currentBookCrumb">GENESIS</span></div>
+          <button class="icon-button" id="bookmarkButton" type="button" aria-label="Save this chapter" title="Save chapter">♡</button>
+        </div>
+        <div class="reading-content">
+          <div class="chapter-kicker"><span class="ornament" aria-hidden="true">✳</span> <span id="testamentLabel">THE OLD TESTAMENT</span></div>
+          <h2 class="chapter-title"><span id="chapterBook">Genesis</span> <span id="chapterNumber">1</span></h2>
+          <div class="chapter-controls">
+            <button class="chapter-arrow" id="previousChapter" type="button" aria-label="Previous chapter">←</button>
+            <label class="chapter-select-wrap" for="chapterSelect"><span>CHAPTER</span>
+              <select id="chapterSelect" aria-label="Choose chapter"></select>
+            </label>
+            <button class="chapter-arrow" id="nextChapter" type="button" aria-label="Next chapter">→</button>
+          </div>
+          <div class="rule"><span>✦</span></div>
+          <article class="verses" id="verseContent" aria-label="Chapter text"></article>
+          <div class="chapter-footer">
+            <span>THE HOLY BIBLE · KING JAMES VERSION</span>
+            <div class="footer-arrows">
+              <button class="text-arrow" id="footerPrevious" type="button">← Previous</button>
+              <button class="text-arrow" id="footerNext" type="button">Next →</button>
+            </div>
+          </div>
         </div>
       </section>
+    </section>
 
-      <section class="reader-layout" id="read" aria-label="Bible reader">
-        <aside class="sidebar">
-          <div class="sidebar-heading">
-            <div>
-              <p class="eyebrow">YOUR BIBLE</p>
-              <h2>Contents</h2>
-            </div>
-            <span class="version-tag">KJV</span>
-          </div>
-          <label class="search-box" for="bookSearch">
-            <span aria-hidden="true">⌕</span>
-            <input
-              id="bookSearch"
-              type="search"
-              placeholder="Find a book"
-              autocomplete="off"
-            />
-            <kbd>/</kbd>
-          </label>
-          <div
-            class="testament-tabs"
-            role="group"
-            aria-label="Filter books by testament"
-          >
-            <button
-              class="testament-tab selected"
-              data-testament="old"
-              type="button"
-            >
-              Old Testament
-            </button>
-            <button class="testament-tab" data-testament="new" type="button">
-              New Testament
-            </button>
-          </div>
-          <div
-            class="book-list"
-            id="bookList"
-            aria-label="Books of the Bible"
-          ></div>
-          <p class="sidebar-note">
-            “Thy word is a lamp unto my feet, and a light unto my path.”
-            <br />
-            <span>PSALM 119:105</span>
-          </p>
-        </aside>
+    <section class="daily-card" id="discover">
+      <div class="daily-icon" aria-hidden="true">✦</div>
+      <div>
+        <p class="eyebrow">A MOMENT TO REFLECT</p>
+        <p class="daily-verse">“Be still, and know that I am God.” <span>— Psalm 46:10</span></p>
+      </div>
+      <a href="#read" class="daily-link" id="openDaily">Read Psalm 46 <span aria-hidden="true">↗</span></a>
+    </section>
+    <div class="saved-message" id="savedMessage" role="status"></div>
+  </main>
 
-        <section class="reading-panel" aria-live="polite">
-          <div class="reading-toolbar">
-            <div class="breadcrumb">
-              <span>THE WORD</span>
-              <span class="crumb-separator">/</span>
-              <span id="currentBookCrumb">GENESIS</span>
-            </div>
-            <button
-              class="icon-button"
-              id="bookmarkButton"
-              type="button"
-              aria-label="Save this chapter"
-              title="Save chapter"
-            >
-              ♡
-            </button>
-          </div>
-          <div class="reading-content">
-            <div class="chapter-kicker">
-              <span class="ornament" aria-hidden="true">✳</span>
-              <span id="testamentLabel">THE OLD TESTAMENT</span>
-            </div>
-            <h2 class="chapter-title">
-              <span id="chapterBook">Genesis</span>
-              <span id="chapterNumber">1</span>
-            </h2>
-            <div class="chapter-controls">
-              <button
-                class="chapter-arrow"
-                id="previousChapter"
-                type="button"
-                aria-label="Previous chapter"
-              >
-                ←
-              </button>
-              <label class="chapter-select-wrap" for="chapterSelect">
-                <span>CHAPTER</span>
-                <select id="chapterSelect" aria-label="Choose chapter"></select>
-              </label>
-              <button
-                class="chapter-arrow"
-                id="nextChapter"
-                type="button"
-                aria-label="Next chapter"
-              >
-                →
-              </button>
-            </div>
-            <div class="rule"><span>✦</span></div>
-            <article
-              class="verses"
-              id="verseContent"
-              aria-label="Chapter text"
-            ></article>
-            <div class="chapter-footer">
-              <span>THE HOLY BIBLE · KING JAMES VERSION</span>
-              <div class="footer-arrows">
-                <button class="text-arrow" id="footerPrevious" type="button">
-                  ← Previous
-                </button>
-                <button class="text-arrow" id="footerNext" type="button">
-                  Next →
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <section class="daily-card" id="discover">
-        <div class="daily-icon" aria-hidden="true">✦</div>
-        <div>
-          <p class="eyebrow">A MOMENT TO REFLECT</p>
-          <p class="daily-verse">
-            “Be still, and know that I am God.”
-            <span>— Psalm 46:10</span>
-          </p>
-        </div>
-        <a href="#read" class="daily-link" id="openDaily">
-          Read Psalm 46
-          <span aria-hidden="true">↗</span>
-        </a>
-      </section>
-      <div class="saved-message" id="savedMessage" role="status"></div>
-    </main>
-
-    <!-- This line links your javascript file tab inside OneCompiler -->
-    <script src="script.js"></script>
-  </body>
+  <!-- This line links your javascript file tab inside OneCompiler -->
+  <script src="script.js"></script>
+</body>
 </html>
