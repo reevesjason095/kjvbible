@@ -76,14 +76,88 @@ const chapterCounts = [
   22
 ];
 
+// Exact HelloAO Bible API book-code mapping for KJV
+const bookCodes = {
+  Genesis: "GEN",
+  Exodus: "EXO",
+  Leviticus: "LEV",
+  Numbers: "NUM",
+  Deuteronomy: "DEU",
+  Joshua: "JOS",
+  Judges: "JDG",
+  Ruth: "RUT",
+  "1 Samuel": "1SA",
+  "2 Samuel": "2SA",
+  "1 Kings": "1KI",
+  "2 Kings": "2KI",
+  "1 Chronicles": "1CH",
+  "2 Chronicles": "2CH",
+  Ezra: "EZR",
+  Nehemiah: "NEH",
+  Esther: "EST",
+  Job: "JOB",
+  Psalms: "PSA",
+  Proverbs: "PRO",
+  Ecclesiastes: "ECC",
+  "Song of Solomon": "SNG",
+  Isaiah: "ISA",
+  Jeremiah: "JER",
+  Lamentations: "LAM",
+  Ezekiel: "EZK",
+  Daniel: "DAN",
+  Hosea: "HOS",
+  Joel: "JOL",
+  Amos: "AMO",
+  Obadiah: "OBA",
+  Jonah: "JON",
+  Micah: "MIC",
+  Nahum: "NAH",
+  Habakkuk: "HAB",
+  Zephaniah: "ZEP",
+  Haggai: "HAG",
+  Zechariah: "ZEC",
+  Malachi: "MAL",
+  Matthew: "MAT",
+  Mark: "MRK",
+  Luke: "LUK",
+  John: "JHN",
+  Acts: "ACT",
+  Romans: "ROM",
+  "1 Corinthians": "1CO",
+  "2 Corinthians": "2CO",
+  Galatians: "GAL",
+  Ephesians: "EPH",
+  Philippians: "PHP",
+  Colossians: "COL",
+  "1 Thessalonians": "1TH",
+  "2 Thessalonians": "2TH",
+  "1 Timothy": "1TI",
+  "2 Timothy": "2TI",
+  Titus: "TIT",
+  Philemon: "PHM",
+  Hebrews: "HEB",
+  James: "JAS",
+  "1 Peter": "1PE",
+  "2 Peter": "2PE",
+  "1 John": "1JN",
+  "2 John": "2JN",
+  "3 John": "3JN",
+  Jude: "JUD",
+  Revelation: "REV"
+};
+
 let selected = 0; // Index of the currently selected book (0 = Genesis)
 let chapter = 1; // Currently selected chapter number
-let activeFilter = "all"; // 'all', 'old', or 'new'
+let activeFilter = "old"; // 'all', 'old', or 'new'
 let searchQuery = "";
 
 const list = document.getElementById("bookList");
 const searchInput = document.getElementById("bookSearch");
 const chapterSelect = document.getElementById("chapterSelect");
+
+function getBookCode(bookName) {
+  return bookCodes[bookName] || bookName.toUpperCase().slice(0, 3);
+}
 
 // 1. RENDER BOOK LIST (With Search and Testament Tab filtering logic)
 function render() {
@@ -147,46 +221,61 @@ function updateUI() {
   renderVerses();
 }
 
-// 4. LIVE API VERSE PARSER (Switched to HelloAO mirror to bypass connection blocks)
+// 4. LIVE API VERSE PARSER
 function renderVerses() {
-  const verseElem = document.getElementById('verseContent');
+  const verseElem = document.getElementById("verseContent");
   if (!verseElem) return;
 
   const currentBook = books[selected];
   const currentChapter = chapter;
 
-  // Show a clean loading indicator
   verseElem.innerHTML = `<p class="verse status-text">Loading ${currentBook} ${currentChapter}...</p>`;
 
-  // HelloAO open API mirror requires lowercased book names without spaces (e.g., "1samuel")
-  const formattedBook = currentBook.toLowerCase().replace(/\s+/g, '');
-  
-  // FIXED: Added the correct full subdomain path and the missing dollar sign ($) for the book variable
-  const apiUrl = `https://helloao.org{formattedBook}/${currentChapter}.json`;
+  const bookCode = getBookCode(currentBook);
+  const apiUrl = `https://bible.helloao.org/api/eng_kjv/${bookCode}/${currentChapter}.json`;
 
   fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) throw new Error('Scripture data unavailable');
+    .then(async (response) => {
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status} for ${apiUrl}: ${errorText}`);
+      }
       return response.json();
     })
-    .then(data => {
-      // Safety guard: ensure the user hasn't switched chapters while waiting for the network
+    .then((data) => {
       if (currentBook !== books[selected] || currentChapter !== chapter) return;
 
-      if (!data.chapter || !data.chapter.verses) {
+      const verses = Array.isArray(data?.chapter?.verses)
+        ? data.chapter.verses
+        : Array.isArray(data?.verses)
+          ? data.verses
+          : [];
+
+      if (!verses.length) {
         verseElem.innerHTML = `<p class="verse status-text">No verses found for this chapter.</p>`;
         return;
       }
 
-      // Map out each real verse string directly into the layout panel window
-      verseElem.innerHTML = data.chapter.verses.map(v => {
-        // HelloAO parses text structures inside an array, let's grab the plain text strings
-        const plainText = v.text || (v.content && v.content.map(c => c.text || c).join('')) || '';
-        return `<p class="verse"><sup>${v.number}</sup> ${plainText.trim()}</p>`;
-      }).join('');
+      verseElem.innerHTML = verses
+        .map((v) => {
+          if (typeof v === "string") {
+            return `<p class="verse"><sup></sup> ${v.trim()}</p>`;
+          }
+
+          const plainText =
+            v.text ||
+            (Array.isArray(v.content)
+              ? v.content.map((c) => c.text || "").join(" ")
+              : "") ||
+            "";
+
+          const verseNumber = v.number ?? v.verse ?? v.verse_number ?? "";
+          return `<p class="verse"><sup>${verseNumber}</sup> ${plainText.trim()}</p>`;
+        })
+        .join("");
     })
-    .catch(error => {
-      console.error('Bible API Mirror Fetch Error:', error);
+    .catch((error) => {
+      console.error("Bible API Mirror Fetch Error:", error);
       verseElem.innerHTML = `
         <p class="verse status-text error-text">
           ⚠️ Unable to load scripture reading. Please check your connection or try again.
@@ -194,8 +283,6 @@ function renderVerses() {
       `;
     });
 }
-
-
 
 // 5. ATTACH ALL NAVIGATION COMPONENT LISTENERS SAFEGUARDS
 if (chapterSelect) {
