@@ -160,28 +160,17 @@ function getBookCode(bookName) {
 function extractVerses(data) {
   if (!data) return [];
 
-  const candidates = [
-    data?.chapter?.verses,
-    data?.chapter?.items,
-    data?.verses,
-    data?.items,
-    data?.data?.chapter?.verses,
-    data?.data?.verses,
-    data?.result?.chapter?.verses,
-    data?.result?.verses,
-    data?.payload?.chapter?.verses,
-    data?.payload?.verses
-  ];
-
-  for (const value of candidates) {
-    if (Array.isArray(value) && value.length) return value;
+  // Actual HelloAO response shape:
+  // data.chapter.content = [{ type: "verse", number: 1, content: ["...", ...] }, ...]
+  if (Array.isArray(data?.chapter?.content)) {
+    return data.chapter.content.filter((item) => item && item.type === "verse");
   }
 
-  if (data?.chapter && typeof data.chapter === "object") {
-    if (Array.isArray(data.chapter.verses) && data.chapter.verses.length) return data.chapter.verses;
-    if (Array.isArray(data.chapter.items) && data.chapter.items.length) return data.chapter.items;
-  }
-
+  // Common fallbacks
+  if (Array.isArray(data?.chapter?.verses)) return data.chapter.verses;
+  if (Array.isArray(data?.verses)) return data.verses;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.chapter?.items)) return data.chapter.items;
   if (Array.isArray(data)) return data;
 
   return [];
@@ -277,31 +266,24 @@ function renderVerses() {
 
       verseElem.innerHTML = verses
         .map((v) => {
+          // Actual HelloAO verse object: { type: "verse", number: 1, content: ["In the beginning...", {...note}] }
           if (typeof v === "string") {
             return `<p class="verse"><sup></sup> ${v.trim()}</p>`;
           }
 
-          const plainText =
-            v.text ||
-            v.verse_text ||
-            v.content_text ||
-            (Array.isArray(v.content)
-              ? v.content
-                  .map((c) => c.text || c.verse_text || c.content_text || "")
-                  .join(" ")
-              : "") ||
-            (Array.isArray(v.lines)
-              ? v.lines
-                  .map((c) => c.text || c.verse_text || c.content_text || "")
-                  .join(" ")
-              : "") ||
-            "";
-
           const verseNumber = v.number ?? v.verse ?? v.verse_number ?? v.id ?? "";
-          const cleanText = plainText.trim();
-          if (!cleanText) return "";
+          const rawContent = Array.isArray(v.content) ? v.content : [];
 
-          return `<p class="verse"><sup>${verseNumber}</sup> ${cleanText}</p>`;
+          const plainText = rawContent
+            .filter((piece) => typeof piece === "string")
+            .join(" ")
+            .trim();
+
+          if (!plainText) {
+            return "";
+          }
+
+          return `<p class="verse"><sup>${verseNumber}</sup> ${plainText}</p>`;
         })
         .filter(Boolean)
         .join("");
