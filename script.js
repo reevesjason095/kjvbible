@@ -76,7 +76,6 @@ const chapterCounts = [
   22
 ];
 
-// Exact HelloAO Bible API book-code mapping for KJV
 const bookCodes = {
   Genesis: "GEN",
   Exodus: "EXO",
@@ -146,9 +145,9 @@ const bookCodes = {
   Revelation: "REV"
 };
 
-let selected = 0; // Index of the currently selected book (0 = Genesis)
-let chapter = 1; // Currently selected chapter number
-let activeFilter = "old"; // 'all', 'old', or 'new'
+let selected = 0;
+let chapter = 1;
+let activeFilter = "old";
 let searchQuery = "";
 
 const list = document.getElementById("bookList");
@@ -159,7 +158,38 @@ function getBookCode(bookName) {
   return bookCodes[bookName] || bookName.toUpperCase().slice(0, 3);
 }
 
-// 1. RENDER BOOK LIST (With Search and Testament Tab filtering logic)
+function extractVerses(data) {
+  if (!data) return [];
+
+  const possible = [
+    data?.chapter?.verses,
+    data?.chapter?.verse,
+    data?.verses,
+    data?.data?.chapter?.verses,
+    data?.data?.verses,
+    data?.result?.chapter?.verses,
+    data?.result?.verses,
+    data?.payload?.chapter?.verses,
+    data?.payload?.verses,
+    data?.chapter?.items,
+    data?.items
+  ];
+
+  for (const item of possible) {
+    if (Array.isArray(item) && item.length) return item;
+  }
+
+  if (data?.chapter && typeof data.chapter === "object") {
+    const chapterObj = data.chapter;
+    if (Array.isArray(chapterObj.verses) && chapterObj.verses.length) return chapterObj.verses;
+    if (Array.isArray(chapterObj.items) && chapterObj.items.length) return chapterObj.items;
+  }
+
+  if (Array.isArray(data)) return data;
+
+  return [];
+}
+
 function render() {
   if (!list) return;
 
@@ -176,7 +206,6 @@ function render() {
     .join("");
 }
 
-// 2. BOOK CLICK EVENT
 if (list) {
   list.addEventListener("click", (e) => {
     const b = e.target.closest("[data-i]");
@@ -189,7 +218,6 @@ if (list) {
   });
 }
 
-// 3. UPDATE ALL DISPLAY INTERFACE COMPONENT FIELDS
 function updateUI() {
   const name = books[selected];
   const totalChapters = chapterCounts[selected] || 1;
@@ -200,8 +228,7 @@ function updateUI() {
   if (document.getElementById("chapterBook"))
     document.getElementById("chapterBook").textContent = name;
   if (document.getElementById("currentBookCrumb"))
-    document.getElementById("currentBookCrumb").textContent =
-      name.toUpperCase();
+    document.getElementById("currentBookCrumb").textContent = name.toUpperCase();
   if (document.getElementById("chapterNumber"))
     document.getElementById("chapterNumber").textContent = chapter;
 
@@ -221,7 +248,6 @@ function updateUI() {
   renderVerses();
 }
 
-// 4. LIVE API VERSE PARSER
 function renderVerses() {
   const verseElem = document.getElementById("verseContent");
   if (!verseElem) return;
@@ -232,59 +258,69 @@ function renderVerses() {
   verseElem.innerHTML = `<p class="verse status-text">Loading ${currentBook} ${currentChapter}...</p>`;
 
   const bookCode = getBookCode(currentBook);
-  const apiUrl = `https://bible.helloao.org/api/eng_kjv/${bookCode}/${currentChapter}.json`;
+  const possibleUrls = [
+    `https://bible.helloao.org/api/eng_kjv/${bookCode}/${currentChapter}.json`,
+    `https://bible.helloao.org/api/eng_kjv/${bookCode}/${currentChapter}.simple.json`
+  ];
 
-  fetch(apiUrl)
-    .then(async (response) => {
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status} for ${apiUrl}: ${errorText}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      if (currentBook !== books[selected] || currentChapter !== chapter) return;
-
-      const verses = Array.isArray(data?.chapter?.verses)
-        ? data.chapter.verses
-        : Array.isArray(data?.verses)
-          ? data.verses
-          : [];
-
-      if (!verses.length) {
-        verseElem.innerHTML = `<p class="verse status-text">No verses found for this chapter.</p>`;
-        return;
-      }
-
-      verseElem.innerHTML = verses
-        .map((v) => {
-          if (typeof v === "string") {
-            return `<p class="verse"><sup></sup> ${v.trim()}</p>`;
+  const tryFetch = (index = 0) => {
+    fetch(possibleUrls[index], { headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        if (!response.ok) {
+          if (index < possibleUrls.length - 1) {
+            return tryFetch(index + 1);
           }
+          throw new Error(`HTTP ${response.status} for ${possibleUrls[index]}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (currentBook !== books[selected] || currentChapter !== chapter) return;
 
-          const plainText =
-            v.text ||
-            (Array.isArray(v.content)
-              ? v.content.map((c) => c.text || "").join(" ")
-              : "") ||
-            "";
+        const verses = extractVerses(data);
+        if (!verses.length) {
+          console.log("HelloAO response:", data);
+          verseElem.innerHTML = `<p class="verse status-text">No verses found for this chapter.</p>`;
+          return;
+        }
 
-          const verseNumber = v.number ?? v.verse ?? v.verse_number ?? "";
-          return `<p class="verse"><sup>${verseNumber}</sup> ${plainText.trim()}</p>`;
-        })
-        .join("");
-    })
-    .catch((error) => {
-      console.error("Bible API Mirror Fetch Error:", error);
-      verseElem.innerHTML = `
-        <p class="verse status-text error-text">
-          ⚠️ Unable to load scripture reading. Please check your connection or try again.
-        </p>
-      `;
-    });
+        verseElem.innerHTML = verses
+          .map((v) => {
+            if (typeof v === "string") return `<p class="verse"><sup></sup> ${v.trim()}</p>`;
+
+            const plainText =
+              v.text ||
+              v.verse_text ||
+              v.content_text ||
+              (Array.isArray(v.content)
+                ? v.content.map((c) => c.text || c.verse_text || "").join(" ")
+                : "") ||
+              (Array.isArray(v.lines)
+                ? v.lines.map((c) => c.text || c.verse_text || "").join(" ")
+                : "") ||
+              "";
+
+            const verseNumber = v.number ?? v.verse ?? v.verse_number ?? v.id ?? "";
+            const cleanText = plainText.trim();
+            if (!cleanText) return "";
+            return `<p class="verse"><sup>${verseNumber}</sup> ${cleanText}</p>`;
+          })
+          .filter(Boolean)
+          .join("");
+      })
+      .catch((error) => {
+        console.error("Bible API Fetch Error:", error);
+        verseElem.innerHTML = `
+          <p class="verse status-text error-text">
+            ⚠️ Unable to load scripture reading. Please check your connection or try again.
+          </p>
+        `;
+      });
+  };
+
+  tryFetch();
 }
 
-// 5. ATTACH ALL NAVIGATION COMPONENT LISTENERS SAFEGUARDS
 if (chapterSelect) {
   chapterSelect.onchange = (e) => {
     chapter = +e.target.value;
@@ -292,7 +328,6 @@ if (chapterSelect) {
   };
 }
 
-// Chapter Navigation Triggers
 function adjustChapter(amount) {
   const totalChapters = chapterCounts[selected] || 1;
   let newChapter = chapter + amount;
@@ -325,7 +360,6 @@ bindClick("nextChapter", () => adjustChapter(1));
 bindClick("footerPrevious", () => adjustChapter(-1));
 bindClick("footerNext", () => adjustChapter(1));
 
-// Testament Tab Filters
 document.querySelectorAll(".testament-tab").forEach((button) => {
   button.onclick = () => {
     document
@@ -336,7 +370,6 @@ document.querySelectorAll(".testament-tab").forEach((button) => {
   };
 });
 
-// Real-time Interactive Text Search Field
 if (searchInput) {
   searchInput.oninput = (e) => {
     searchQuery = e.target.value.toLowerCase().trim();
@@ -344,7 +377,6 @@ if (searchInput) {
   };
 }
 
-// Bookmark Notification Trigger
 bindClick("bookmarkButton", () => {
   const savedMsg = document.getElementById("savedMessage");
   if (savedMsg) {
@@ -354,25 +386,20 @@ bindClick("bookmarkButton", () => {
   }
 });
 
-// Daily Card Action Hook Link
 bindClick("openDaily", (e) => {
   e.preventDefault();
-  selected = 18; // Psalms index
-  chapter = 46; // Psalm 46
+  selected = 18;
+  chapter = 46;
   updateUI();
   render();
   document.getElementById("read").scrollIntoView({ behavior: "smooth" });
 });
 
-// 6. DYNAMIC SYSTEM CLOCK INITIALIZATION
 const dateChip = document.getElementById("todayDate");
 if (dateChip) {
   const options = { weekday: "short", month: "short", day: "numeric" };
-  dateChip.textContent = new Date()
-    .toLocaleDateString("en-US", options)
-    .toUpperCase();
+  dateChip.textContent = new Date().toLocaleDateString("en-US", options).toUpperCase();
 }
 
-// Initial Boot Cycle
 render();
 updateUI();
