@@ -68,7 +68,6 @@ const books = [
   "Revelation"
 ];
 
-// Actual chapter counts for each book
 const chapterCounts = [
   50, 40, 27, 36, 34, 24, 21, 4, 31, 24, 22, 25, 29, 36, 10, 13, 10, 42, 150,
   31, 12, 8, 66, 52, 5, 48, 12, 14, 3, 9, 1, 4, 7, 3, 3, 3, 2, 14, 4, 28, 16,
@@ -161,28 +160,26 @@ function getBookCode(bookName) {
 function extractVerses(data) {
   if (!data) return [];
 
-  const possible = [
+  const candidates = [
     data?.chapter?.verses,
-    data?.chapter?.verse,
+    data?.chapter?.items,
     data?.verses,
+    data?.items,
     data?.data?.chapter?.verses,
     data?.data?.verses,
     data?.result?.chapter?.verses,
     data?.result?.verses,
     data?.payload?.chapter?.verses,
-    data?.payload?.verses,
-    data?.chapter?.items,
-    data?.items
+    data?.payload?.verses
   ];
 
-  for (const item of possible) {
-    if (Array.isArray(item) && item.length) return item;
+  for (const value of candidates) {
+    if (Array.isArray(value) && value.length) return value;
   }
 
   if (data?.chapter && typeof data.chapter === "object") {
-    const chapterObj = data.chapter;
-    if (Array.isArray(chapterObj.verses) && chapterObj.verses.length) return chapterObj.verses;
-    if (Array.isArray(chapterObj.items) && chapterObj.items.length) return chapterObj.items;
+    if (Array.isArray(data.chapter.verses) && data.chapter.verses.length) return data.chapter.verses;
+    if (Array.isArray(data.chapter.items) && data.chapter.items.length) return data.chapter.items;
   }
 
   if (Array.isArray(data)) return data;
@@ -257,68 +254,66 @@ function renderVerses() {
 
   verseElem.innerHTML = `<p class="verse status-text">Loading ${currentBook} ${currentChapter}...</p>`;
 
-  const bookCode = getBookCode(currentBook);
-  const possibleUrls = [
-    `https://bible.helloao.org/api/eng_kjv/${bookCode}/${currentChapter}.json`,
-    `https://bible.helloao.org/api/eng_kjv/${bookCode}/${currentChapter}.simple.json`
-  ];
+  const apiUrl = `/.netlify/functions/bible?book=${encodeURIComponent(currentBook)}&chapter=${currentChapter}`;
 
-  const tryFetch = (index = 0) => {
-    fetch(possibleUrls[index], { headers: { Accept: "application/json" } })
-      .then(async (response) => {
-        if (!response.ok) {
-          if (index < possibleUrls.length - 1) {
-            return tryFetch(index + 1);
+  fetch(apiUrl)
+    .then(async (response) => {
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP ${response.status}: ${text}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (currentBook !== books[selected] || currentChapter !== chapter) return;
+
+      const verses = extractVerses(data);
+
+      if (!verses.length) {
+        console.log("Bible API response:", data);
+        verseElem.innerHTML = `<p class="verse status-text">No verses found for this chapter.</p>`;
+        return;
+      }
+
+      verseElem.innerHTML = verses
+        .map((v) => {
+          if (typeof v === "string") {
+            return `<p class="verse"><sup></sup> ${v.trim()}</p>`;
           }
-          throw new Error(`HTTP ${response.status} for ${possibleUrls[index]}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (currentBook !== books[selected] || currentChapter !== chapter) return;
 
-        const verses = extractVerses(data);
-        if (!verses.length) {
-          console.log("HelloAO response:", data);
-          verseElem.innerHTML = `<p class="verse status-text">No verses found for this chapter.</p>`;
-          return;
-        }
+          const plainText =
+            v.text ||
+            v.verse_text ||
+            v.content_text ||
+            (Array.isArray(v.content)
+              ? v.content
+                  .map((c) => c.text || c.verse_text || c.content_text || "")
+                  .join(" ")
+              : "") ||
+            (Array.isArray(v.lines)
+              ? v.lines
+                  .map((c) => c.text || c.verse_text || c.content_text || "")
+                  .join(" ")
+              : "") ||
+            "";
 
-        verseElem.innerHTML = verses
-          .map((v) => {
-            if (typeof v === "string") return `<p class="verse"><sup></sup> ${v.trim()}</p>`;
+          const verseNumber = v.number ?? v.verse ?? v.verse_number ?? v.id ?? "";
+          const cleanText = plainText.trim();
+          if (!cleanText) return "";
 
-            const plainText =
-              v.text ||
-              v.verse_text ||
-              v.content_text ||
-              (Array.isArray(v.content)
-                ? v.content.map((c) => c.text || c.verse_text || "").join(" ")
-                : "") ||
-              (Array.isArray(v.lines)
-                ? v.lines.map((c) => c.text || c.verse_text || "").join(" ")
-                : "") ||
-              "";
-
-            const verseNumber = v.number ?? v.verse ?? v.verse_number ?? v.id ?? "";
-            const cleanText = plainText.trim();
-            if (!cleanText) return "";
-            return `<p class="verse"><sup>${verseNumber}</sup> ${cleanText}</p>`;
-          })
-          .filter(Boolean)
-          .join("");
-      })
-      .catch((error) => {
-        console.error("Bible API Fetch Error:", error);
-        verseElem.innerHTML = `
-          <p class="verse status-text error-text">
-            ⚠️ Unable to load scripture reading. Please check your connection or try again.
-          </p>
-        `;
-      });
-  };
-
-  tryFetch();
+          return `<p class="verse"><sup>${verseNumber}</sup> ${cleanText}</p>`;
+        })
+        .filter(Boolean)
+        .join("");
+    })
+    .catch((error) => {
+      console.error("Bible fetch error:", error);
+      verseElem.innerHTML = `
+        <p class="verse status-text error-text">
+          ⚠️ Unable to load scripture reading. Please check your connection or try again.
+        </p>
+      `;
+    });
 }
 
 if (chapterSelect) {
@@ -398,7 +393,9 @@ bindClick("openDaily", (e) => {
 const dateChip = document.getElementById("todayDate");
 if (dateChip) {
   const options = { weekday: "short", month: "short", day: "numeric" };
-  dateChip.textContent = new Date().toLocaleDateString("en-US", options).toUpperCase();
+  dateChip.textContent = new Date()
+    .toLocaleDateString("en-US", options)
+    .toUpperCase();
 }
 
 render();
